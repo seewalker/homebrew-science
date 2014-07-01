@@ -1,16 +1,19 @@
 require "formula"
 
-class Ambertools14 < Formula
+class Ambertools < Formula
   homepage "http://ambermd.org"
   url "http://ambermd.rutgers.edu/cgi-bin/AmberTools14-get.pl?Name=homebrewer&Institution=0&City=None&State=Other&Country=INT", :using => :post
   sha1 "342ddaca89369f647fe6df78895584d781719375"
+  version "14"
+
   depends_on :fortran
   depends_on :x11 => :optional
+  depends_on :mpi => :optional
 
   option "with-cuda", 'gpu acceleration'
-  option "with-mpi", 'compiler directives for parallelization'
   option "with-openmp", 'message passing for parallelization'
-  option "with-no_macAccelerate", 'no mac-specific speedups'
+  option "without-macAccelerate", 'no mac-specific speedups'
+  option "with-check", 'directive to run tests after install'
 
   fails_with :llvm do
       cause <<-EOS.undent
@@ -34,15 +37,17 @@ class Ambertools14 < Formula
   end
 
   def install
+    raise "User specified incompatible options" if (build.with? "openmp") and (build.with? "mpi")
     ENV['AMBERHOME'] = buildpath
-    configStr = "echo Y | ./configure"
-    configStr += ' -cuda'if build.with? "cuda"
-    configStr += ' -mpi'if build.with? "mpi"
-    configStr += ' -openmp'if build.with? "openmpi"
-    configStr += ' -noX11' if build.without? "x11"
-    configStr += ' -macAccelerate' if build.without? "no_macAccelerate"
-    configStr += ' gnu'
-    system configStr
+    inreplace "configure", "read answer", "answer=Y"
+    args = []
+    args << ' -cuda' if build.with? "cuda"
+    args << ' -openmp' if build.with? "openmp"
+    args << ' -mpi' if build.with? "mpi"
+    args << ' -noX11' if build.without? "x11"
+    args << ' -macAccelerate' if build.with? "macAccelerate"
+    args << " gnu"
+    system "./configure", *args
     system "make", "install"
     bin.install Dir["bin/*"]
     doc.install Dir["doc/*"]
@@ -51,6 +56,7 @@ class Ambertools14 < Formula
     (prefix/"AmberTools").install Dir["AmberTools/*"]
     (prefix/"test").install Dir["test/*"]
     (prefix/"updateutils").install Dir["updateutils/*"]
+    system "make test" if build.with? "check"
   end
 
   def caveats
@@ -59,9 +65,5 @@ class Ambertools14 < Formula
       If you are compiling with cuda support, the shell variable CUDA_HOME must be set appropriately.
       EOS
       s
-  end
-
-  test do
-      system "make test"
   end
 end
