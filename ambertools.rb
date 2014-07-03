@@ -7,6 +7,7 @@ class Ambertools < Formula
   version "14"
 
   depends_on :fortran
+  depends_on 'netcdf' => 'enable-fortran'
   depends_on :x11 => :optional
   depends_on :mpi => :optional
 
@@ -46,6 +47,7 @@ class Ambertools < Formula
     args << ' -mpi' if build.with? "mpi"
     args << ' -noX11' if build.without? "x11"
     args << ' -macAccelerate' if build.with? "macAccelerate"
+    args << " --with-netcdf #{HOMEBREW_PREFIX}/Cellar/netcdf/4.3.2"
     args << " gnu"
     system "./configure", *args
     system "make", "install"
