@@ -47,7 +47,7 @@ class Ambertools < Formula
     args << ' -mpi' if build.with? "mpi"
     args << ' -noX11' if build.without? "x11"
     args << ' -macAccelerate' if build.with? "macAccelerate"
-    args << " --with-netcdf #{HOMEBREW_PREFIX}/Cellar/netcdf/4.3.2"
+    args << " --with-netcdf #{Formula['netcdf'].prefix}"
     args << " gnu"
     system "./configure", *args
     system "make", "install"
