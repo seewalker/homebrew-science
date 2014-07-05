@@ -41,13 +41,13 @@ class Ambertools < Formula
     raise "User specified incompatible options" if (build.with? "openmp") and (build.with? "mpi")
     ENV['AMBERHOME'] = buildpath
     inreplace "configure", "read answer", "answer=Y"
-    ['', '-static', '-nofftw3'].each do |o|
+    ['', 'no-macAccelerate', '-static', '-nofftw3'].each do |o|
       args = []
       args << ' -cuda' if build.with? "cuda"
       args << ' -openmp' if build.with? "openmp"
       args << ' -mpi' if build.with? "mpi"
       args << ' -noX11' if build.without? "x11"
-      args << ' -macAccelerate' if build.with? "macAccelerate"
+      args << ' -macAccelerate' if (build.with? "macAccelerate") and (o != 'no-macAccelerate')
       args << " --with-netcdf #{Formula['netcdf'].prefix}"
       args << "#{o}"
       args << " gnu"
